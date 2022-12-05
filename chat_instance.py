@@ -3,18 +3,32 @@ from tkinter import *
 from client import Client
 from random import randint
 from twisted.internet import reactor
+from twisted.internet.protocol import DatagramProtocol 
 
+from uuid import uuid4
 import threading
 
 import time
 
-class App(threading.Thread):
+class App(threading.Thread, DatagramProtocol):
     # TODO: Create send method and received method for the chat. This will be called from the client
 
-    def __init__(self):
+    def __init__(self, host, port):
         self.user_created = False
+        if host == "localhost":
+            host = "127.0.0.1"
+        
+        self.username = None
+        self.address_list = []
+        self.id = host, port
+        self.address = None
+        self.server = '127.0.0.1', 9999
+        print("Working on id:", self.id)
+        self.user = uuid4() # Sets a random id the client
+
         threading.Thread.__init__(self)
         self.start()
+
     def startProtocol(self):
         self.transport.write("ready".encode("utf-8"), self.server)
 
@@ -37,31 +51,30 @@ class App(threading.Thread):
             # self.address = input("Write address:"), int(input("Write port:"))
             except IndexError:
                 print('There is no people connected yet.')
-            reactor.callInThread(self.send_message)
+            reactor.callInThread(self.send_message(message=datagram))
         
         elif addr not in self.address_list:
             self.address_list.append(addr)
             print(f"New address added: {addr}")
-            print(datagram)
-            print(':::')
+
         else:
-            print(datagram)
-            print(':::')
+            self.txt.insert(END, "\n" + datagram)
 
 
-    def send_message(self):
-        while True:
-            message = input(":::")
-            message = f'[{self.user}] {message}'.encode('utf-8')
-            for address in self.address_list:
-                # print(address)
+    def send_message(self, message):
+        if self.username is not None:
+            message = f'{message}'.encode('utf-8')
+        else:
+            message = f'{message}'.encode('utf-8')
+        for address in self.address_list:
+            # print(address)
 
-                self.transport.write(message, address)
+            self.transport.write(message, address)
                 
     def callback(self):
         self.root.quit()
 
-    def send_message(self):
+    def send_message_interface(self):
         msg = self.e.get()
         if self.user_created is False and msg:
             print('Entra')
@@ -73,6 +86,7 @@ class App(threading.Thread):
                                   "If you want to clear the screen enter clearmsg.\n")
         elif msg == 'exitbye':
             self.root.destroy()
+            reactor.stop()
 
         elif msg == 'clearmsg':
             self.txt.delete(1.0, END)
@@ -81,7 +95,9 @@ class App(threading.Thread):
         else:
             send = f"[{self.username}] "  + self.e.get()
             self.txt.insert(END, "\n" + send)
+            self.send_message(message=send)
             self.message.set('')
+    
 
 
     def welcome_process(self):
@@ -89,7 +105,7 @@ class App(threading.Thread):
                              "Please, enter your nickname and press Enter.\n\n")
 
     def press_enter(self, e):
-        self.send_message()
+        self.send_message_interface()
 
     def run(self):
         self.root = Tk()
@@ -108,7 +124,7 @@ class App(threading.Thread):
         self.e = Entry(self.root, textvariable=self.message, bg="#2C3E50", fg=settings.TEXT_COLOR, font=settings.FONT, width=55)
         self.e.grid(row=2, column=0)
         
-        send = Button(self.root, text="Send", font=settings.FONT_BOLD, bg=settings.BG_GRAY, command=self.send_message).grid(row=2, column=1)
+        send = Button(self.root, text="Send", font=settings.FONT_BOLD, bg=settings.BG_GRAY, command=self.send_message_interface).grid(row=2, column=1)
         self.root.bind('<Return>', self.press_enter)
 
         self.welcome_process()
@@ -118,4 +134,7 @@ class App(threading.Thread):
 
 
 if __name__ == '__main__':
-    gui = App() 
+    port = randint(1000, 5000)
+    host = '127.0.0.1'
+    reactor.listenUDP(port, App(host, port))
+    reactor.run()
