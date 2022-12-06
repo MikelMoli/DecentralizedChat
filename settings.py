@@ -1,7 +1,7 @@
 
 CONNECTION = {
     'HOST': '127.0.0.1',
-    'PORT': 9669
+    'PORT': 5000
 }
 
 BG_GRAY = "#ABB2B9"

@@ -1,6 +1,6 @@
 import settings
+import requests
 from tkinter import *
-from client import Client
 from random import randint
 from twisted.internet import reactor
 from twisted.internet.protocol import DatagramProtocol 
@@ -17,17 +17,32 @@ class App(threading.Thread, DatagramProtocol):
         self.user_created = False
         if host == "localhost":
             host = "127.0.0.1"
-        
+
+        self.host = host
+        self.port = port
+        self.address = host, port
         self.username = None
         self.address_list = []
+        self.request_ips()
         self.id = host, port
-        self.address = None
-        self.server = '127.0.0.1', 9999
-        print("Working on id:", self.id)
+        # self.address = None
+        self.server = settings.CONNECTION['HOST'], settings.CONNECTION['PORT']
         self.user = uuid4() # Sets a random id the client
 
         threading.Thread.__init__(self)
         self.start()
+
+    def request_ips(self):
+        server_address = f"http://{settings.CONNECTION['HOST']}:{settings.CONNECTION['PORT']}/?p={self.port}"
+        print(server_address)
+        response = requests.get(server_address)
+        if response.status_code == 200:
+            for row in response.text.split("\n"):
+                address = row.split(',')[0][2:-1]
+                port = int(row.split(', ')[1][0:-1])
+                full_address = address, port 
+                if full_address not in self.address_list and full_address != self.address:
+                    self.address_list.append(full_address)
 
     def startProtocol(self):
         self.transport.write("ready".encode("utf-8"), self.server)
@@ -35,27 +50,11 @@ class App(threading.Thread, DatagramProtocol):
     # datagram is the data we receive and address is the address that sends the data
     def datagramReceived(self, datagram: bytes, addr):
         datagram = datagram.decode("utf-8")
-        # print('addr: ', self.address_list)
-        if addr == self.server:
-            # print("Choose a client from these \n", datagram)
-            # self.address_list = [x.replace("('", "").replace() for x in datagram.split('\n')]
-            try:
-                for row in datagram.split('\n'):
-                    # ERROR: the first connected
-                    address = row.split(',')[0][2:-1]
-                    port = int(row.split(', ')[1][0:-1])
-                    full_address = address, port 
-                    if full_address not in self.address_list:
-                        self.address_list.append(full_address)
-                    # print(address, port)
-            # self.address = input("Write address:"), int(input("Write port:"))
-            except IndexError:
-                print('There is no people connected yet.')
-            reactor.callInThread(self.send_message(message=datagram))
         
-        elif addr not in self.address_list:
+        if addr not in self.address_list:
             self.address_list.append(addr)
             print(f"New address added: {addr}")
+            self.txt.insert(END, "\n" + datagram)
 
         else:
             self.txt.insert(END, "\n" + datagram)
@@ -67,8 +66,6 @@ class App(threading.Thread, DatagramProtocol):
         else:
             message = f'{message}'.encode('utf-8')
         for address in self.address_list:
-            # print(address)
-
             self.transport.write(message, address)
                 
     def callback(self):
@@ -77,7 +74,6 @@ class App(threading.Thread, DatagramProtocol):
     def send_message_interface(self):
         msg = self.e.get()
         if self.user_created is False and msg:
-            print('Entra')
             self.user_created = True
             self.username = self.e.get()
             self.message.set('')
