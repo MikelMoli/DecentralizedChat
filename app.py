@@ -16,9 +16,9 @@ available_ips = set()
 
 @app.route('/', methods=["GET"])
 def get_connected_devices():
-    print(request.remote_addr)
+    remote_addr = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     port = request.args.get('p', default = 1, type = int)
-    addr = request.remote_addr, port
+    addr = remote_addr, port
     print(f"New address received: {addr}")
     if addr not in available_ips:
         available_ips.add(addr)
