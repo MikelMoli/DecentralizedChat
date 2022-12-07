@@ -10,7 +10,7 @@ from twisted.internet import reactor
 # def get_connected_devices():
 #     pass
 
-app = Flask('innkeeper')
+app = Flask(__name__)
 
 available_ips = set()
 
@@ -25,6 +25,7 @@ def get_connected_devices():
     addresses = "\n".join([str(x) for x in available_ips])
     return f'{addresses}'
 
+"""
 class Server(DatagramProtocol):
     # El server sólo sirve para dar la lista de los addresses existentes en el chat
     def __init__(self):
@@ -42,8 +43,10 @@ class Server(DatagramProtocol):
 
     def run(self):
         app = Flask('innkeeper')
-
+"""
 # if __name__ == '__main__':
 #     reactor.listenUDP(9999, Server())
 #     reactor.run()
 
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0')
