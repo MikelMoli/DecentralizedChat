@@ -17,6 +17,9 @@ available_ips = set()
 @app.route('/', methods=["GET"])
 def get_connected_devices():
     remote_addr = request.headers.get("X-Forwarded-For")
+    # Al desplegarlo tiene varias IPs del forward que habrá que manejar
+    # ('62.99.106.92, 188.114.111.49, 10.217.253.201, 10.217.119.222', 1)
+    remote_addr = remote_addr.replace("('", "").split(',')[0]
     port = request.args.get('p', default = 1, type = int)
     addr = remote_addr, port
     print(f"New address received: {addr}")
