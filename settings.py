@@ -1,6 +1,6 @@
 
 CONNECTION = {
-    'HOST': '127.0.0.1',
+    'HOST': 'https://innkeeper.onrender.com',
     'PORT': 5000
 }
 

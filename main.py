@@ -10,7 +10,7 @@ import threading
 
 import time
 
-class App(threading.Thread, DatagramProtocol):
+class ChatApp(threading.Thread, DatagramProtocol):
 
     def __init__(self, host, port):
         self.user_created = False
@@ -135,5 +135,5 @@ if __name__ == '__main__':
     port = randint(1000, 5000)
     port = 9998
     host = '127.0.0.1'
-    reactor.listenUDP(port, App(host, port))
+    reactor.listenUDP(port, ChatApp(host, port))
     reactor.run()

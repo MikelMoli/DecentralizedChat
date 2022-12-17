@@ -1,0 +1,94 @@
+#:import utils kivy.utils
+LoginLayout:
+
+<LoginLayout>
+
+    GridLayout:
+        cols:1
+        size_hint: .95, 1
+        pos_hint: {'center_x': .5, 'center_y': .5}
+
+        Image:
+            source:'./img/racoon.png'
+            size_hint: .1, .4
+
+        Label:
+            text: 'Welcome! \n Insert your name to start the chat:'
+            size_hint: .1, .25
+            font_size: 20
+            color:'#00FFCE'
+            halign:'center'
+
+        GridLayout:
+            cols: 2
+            size_hint: .1, .1
+            halign:'center'
+            TextInput:
+                id: username
+                halign:'center'
+                font_size: 24
+                padding: [0, (self.height-self.line_height)/2]
+                size_hint: 1, .1
+                multiline:False
+
+            Button:
+                text: "Submit"
+                size_hint: .1, .1
+                background_color: '#00FFCE'
+                on_press: 
+                    root.manager.get_screen("ChatLayout").username = username.text
+                    app.username = username.text
+                    root.manager.current = "ChatLayout"
+
+        Label:
+            text:''    
+            size_hint: None, .05
+
+</LoginLayout>
+
+<ChatLayout>
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, .98
+        canvas.before:
+            Color:
+                rgb: 1, 1, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        ScrollView:
+            size_hint: .97, .9
+            do_scroll_x: False
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            orientation: 'vertical'
+            scroll_timeout: 1
+            Label:
+                id: chat_label
+                color: 0, 0, 0
+                background_color: 0, 0, 0
+                size_hint: (.33, None)
+                markup: True
+                text: 'Welcome to the Decentralized chat! \nYou can start writing now.'
+
+        GridLayout:
+            size_hint: .97, .1
+            cols:2
+            pos_hint: {'center_x': .5, 'center_y': .5}
+            TextInput:
+                id: text_input
+                size_hint: .9, .1
+                multiline:False
+
+            Button:
+                size_hint: .1, .1
+
+                on_press: 
+                    app.prueba(text_input.text)
+                Image:
+                    source: './img/send.png'
+                    size: 50, 50 
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+
+</ChatLayout>
